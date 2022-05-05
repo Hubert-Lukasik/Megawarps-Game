@@ -23,6 +23,12 @@ pygame.display.set_caption("Megawarps")
 icon = pygame.image.load("images/icon.png")
 pygame.display.set_icon(icon)
 
+#sizes
+tile_width, tile_height = 40,40
+player_img_width, player_img_height = 35,35
+agent_img_width, agent_img_height = 35,35
+
+
 #basic functions
 def to_finish(event):
     if event.type == pygame.QUIT or event.type == KEYDOWN and event.key == K_ESCAPE:

@@ -1,21 +1,22 @@
 from configuration import *
 
-locations = {}
+game_map = {}
 
-def prepare_locations():
+def prepare_game_map():
     import os, random
     from collections import deque
     
-    global locations
+    global game_map
+    global tile_width, tile_height
     
     possible_places = os.listdir("maps/independent")
     
-    possible_places.remove("Professor's_house.txt") #starting location
+    possible_places.remove("Rebels'_HQ.txt") #starting location
     possible_places.remove("The_Core.txt") #final location
     
     to_process = deque()
     
-    to_process.append("Professor's_house.txt")
+    to_process.append("Rebels'_HQ.txt")
     
     how_many_places_to_include = min(len(possible_places), random.randint(10, 1000))
     
@@ -25,7 +26,7 @@ def prepare_locations():
     while len(to_process) > 0:
         
         actual = to_process.popleft()
-        locations[actual] = {}
+        game_map[actual] = {}
         
         
         file = open("maps/independent/" + actual, "r")
@@ -49,6 +50,7 @@ def prepare_locations():
                     if how_many_places_to_include > 0:
                         place_to_connect = random.choice(possible_places)
                         possible_places.remove(place_to_connect)
+                        
                         file = open("maps/independent/" + place_to_connect, "r")
                         place_to_connect_description = file.read()
                         place_to_connect_description = place_to_connect_description.split()
@@ -67,7 +69,7 @@ def prepare_locations():
                         for y_cord in range(len(map_of_place_to_connect)):
                             for x_cord in range(len(map_of_place_to_connect[y_cord])):
                                 if map_of_place_to_connect[y_cord][x_cord] == "O": #found out warp
-                                    locations[actual][(x,y)] = (place_to_connect, (x_cord, y_cord))
+                                    game_map[actual][(x * tile_width,y * tile_height)] = ((x_cord * tile_width, y_cord * tile_height), place_to_connect)
                                     to_process.append(place_to_connect)
                                     break
                         
@@ -75,92 +77,86 @@ def prepare_locations():
                     
                     else:
                         already_used = []
-                        for a in locations.keys():
-                            for b in locations[a].values():
+                        for a in game_map.keys():
+                            for b in game_map[a].values():
                                 already_used.append(b)
                         
                         if len(already_used) > 1: #there are more locations than only actual
-                            chosen = (actual, (0,0))
-                            while chosen[0] == actual:
+                            chosen = ((0,0), actual)
+                            while chosen[1] == actual:
                                 chosen = random.choice(already_used)
                                 
-                            locations[actual][(x,y)] = chosen
+                            game_map[actual][(x * tile_width,y * tile_height)] = chosen
                         else: #warp to begin of the game
-                            locations[actual][(x,y)] = ("Professor's_house.txt", (7,3))
+                            game_map[actual][(x * tile_width ,y * tile_height)] = ((280,120), "Rebels'_HQ.txt",)
                         
-                        loops.append((actual, (x,y)))
+                        loops.append((actual, (x * tile_width,y * tile_height)))
     
     
     #connecting one of places to the final location
     
     if len(loops) > 0:
         chosen = random.choice(loops)
-        locations[chosen[0]][chosen[1]] = ("The_Core.txt", (0,19))
+        game_map[chosen[0]][chosen[1]] = ((0,760), "The_Core.txt")
     else: # I don't have loops
         # I don't want to connect final location with starting location
-        chosen_place = "Professor's_house.txt"
-        while chosen_place == "Professor's_house.txt":
-            chosen_place = random.choice(list(locations.keys()))
-        chosen_warp = random.choise(list(locations[chosen_place].keys()))
+        chosen_place = "Rebels'_HQ.txt"
+        while chosen_place == "Rebels'_HQ.txt":
+            chosen_place = random.choice(list(game_map.keys()))
+        chosen_warp = random.choise(list(game_map[chosen_place].keys()))
         
-        locations[chosen_place][chosen_warp] = ("The_Core.txt", (0,19))
+        game_map[chosen_place][chosen_warp] = ((0,760), "The_Core.txt")    
 
-        
+def warp_info(x,y,map_name, img_width, img_height):
+    global game_map
+    global screen_width, screen_height
+    global tile_width, tile_height
     
+    object_rect = Rect(x, y, img_width, img_height)
+    for warp in list(game_map[map_name].keys()):
+        warp_rect = Rect(warp[0], warp[1], tile_width, tile_height)
+        if pygame.Rect.colliderect(object_rect, warp_rect):
+            return game_map[map_name][warp][0][0], game_map[map_name][warp][0][1], game_map[map_name][warp][1]
+    return 0,0, "Error" #never should be executed
 
-def warp_info(y,x,map_name):
-    global locations
-    tile_width, tile_height = 40, 40
-    return locations[map_name][(x,y)][0], locations[map_name][(x,y)][1][0] * tile_width, locations[map_name][(x,y)][1][1] * tile_height
-        
-
-def check_what_under(player_x, player_y, map_name, img_width, img_height):
+def check_what_under(x, y, map_name, img_width, img_height):
+    global tile_width, tile_height
+    
     #reading map
     file = open("maps/independent/" + map_name, "r")
     data = file.read()
     data = data.split()
     file.close()
 
-    game_map = []
+    MAP = []
     ind = -1
-    for x in data:
-        if x == "B": #every line begins with B
-            game_map.append([])
+    for element in data:
+        if element == "B": #every line begins with B
+            MAP.append([])
             ind += 1
         else:
-            #x -> tile(s) ID
-            game_map[ind].append(x)
+            #element -> tile(s) ID
+            MAP[ind].append(element)
     
-    tile_width, tile_height = 40,40
+    collision_with = "TBD"
     
+    object_rect = Rect(x, y, img_width, img_height)
     
-    under = "TBD"
-    
-    player_rect = Rect(player_x, player_y, img_width, img_height)
-    
-    on_warp = False
-    is_game_finished = False
-    
-    for y in range(len(game_map)):
-        if (y + 1) * tile_height < player_y or y * tile_height > player_y + img_height:
+    for row in range(len(MAP)):
+        if (row + 1) * tile_height < y or row * tile_height > y + img_height:
             continue
         
-        for x in range(len(game_map[y])):
+        for column in range(len(MAP[row])):
             
-            if (x + 1) * tile_width < player_x or x * tile_width > player_x + img_width:
+            if (column + 1) * tile_width < x or column * tile_width > x + img_width:
                 continue
 
-            tile_rect = Rect(x * tile_width, y * tile_height, tile_width, tile_height)
-            if pygame.Rect.colliderect(player_rect, tile_rect):
-                under += "," + game_map[y][x]
-                if game_map[y][x] == "I":
-                    map_name, player_x, player_y = warp_info(y,x,map_name)
-                    on_warp = True
-                elif game_map[y][x] == "E": #end of game
-                    is_game_finished = True
-                
-    return under, map_name, player_x, player_y, on_warp, is_game_finished
+            tile_rect = Rect(column * tile_width, row * tile_height, tile_width, tile_height)
+            if pygame.Rect.colliderect(object_rect, tile_rect):
+                collision_with += "," + MAP[row][column]              
     
+    return collision_with
+
 def draw_area(map_name):
     global screen_height, screen_width
 
@@ -170,32 +166,24 @@ def draw_area(map_name):
     data = data.split()
     file.close()
 
-    game_map = []
+    MAP = []
     ind = -1
-    for x in data:
-        if x == "B": #every line begins with B
-            game_map.append([])
+    for element in data:
+        if element == "B": #every line begins with B
+            MAP.append([])
         else:
-            #x -> tile(s) ID
-            game_map[ind].append(x)
-
-
-    tile_width, tile_height = 40,40
+            #element -> tile(s) ID
+            MAP[ind].append(element)
     
     for y in range(screen_height // tile_height):
-        if y > len(game_map) - 1:
+        if y > len(MAP) - 1:
             break
         for x in range(screen_width // tile_width):
-            if x > len(game_map[y]) - 1:
+            if x > len(MAP[y]) - 1:
                 break
-            if game_map[y][x] == "TBD":
+            if MAP[y][x] == "TBD":
                 continue
-            for z in game_map[y][x].split(","): 
+            for z in MAP[y][x].split(","):
                 tile = pygame.image.load("images/tiles/" + z + ".png")
                 tile = pygame.transform.scale(tile, (tile_width, tile_height))
                 screen.blit(tile,(tile_width * x, tile_height * y ))
-
-
-    
-
- 

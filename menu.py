@@ -23,12 +23,7 @@ def show():
                     else:
                         return False
         
-        screen.fill((255,255,255))
-        
-        #background
-        background = pygame.image.load("images/menu_background.jpg")
-        pygame.transform.scale(background, (screen_width,screen_height))
-        screen.blit(background, (0,0))
+        screen.fill((173,216,230.1))
         
         #showing title
         style = pygame.font.SysFont("Arial", 70, bold = True)
