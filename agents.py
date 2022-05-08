@@ -2,8 +2,8 @@ from configuration import *
 import game_map
 
 #tile in row (counting from 0), tile in collumn (counting from 0),direction
-positions = {"Rebels'_HQ.txt" : [[50,50,"R"]], "Big_fountain.txt" : [], "Johnny's_House.txt" : [], "The_Core.txt" : []}
-AGENT_CANNOT_STAND_ON = ["I", "370", "371", "372"]
+positions = {"Rebels'_HQ.txt" : [[50,50,"R"]], "Big_fountain.txt" : [[700, 50, "L"]], "Car_park.txt" : [[600, 200, "R"], [700, 600, "L"]], "The_Core.txt" : [], "Motorway.txt" : []}
+AGENT_CANNOT_STAND_ON = ["I", "37","43", "76", "84", "110", "111", "112", "121", "122", "123", "135", "144", "163", "164", "165", "178", "180",  "205", "206", "207", "225", "240", "233", "342", "370", "371", "372"]
 
 def is_proper_move(x, y, map_name):
     global agent_img_width, agent_img_height
@@ -26,7 +26,7 @@ def move(player_x, player_y, map_name):
     global tile_width, tile_height
     
     agent_step = 5
-    agent_run = 10
+    agent_run = 7
     if positions[map_name] != []:
         moving = -2
         #checking distance to player

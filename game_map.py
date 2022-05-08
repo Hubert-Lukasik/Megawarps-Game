@@ -1,6 +1,7 @@
 from configuration import *
 
 game_map = {}
+cars = []
 
 def prepare_game_map():
     import os, random
@@ -19,10 +20,7 @@ def prepare_game_map():
     to_process.append("Rebels'_HQ.txt")
     
     how_many_places_to_include = min(len(possible_places), random.randint(10, 1000))
-    
-    
-    loops = [] #list of locations connected to earlier used locations, it will be useful to connect one of them to the final location
-    
+        
     while len(to_process) > 0:
         
         actual = to_process.popleft()
@@ -80,6 +78,12 @@ def prepare_game_map():
                         for a in game_map.keys():
                             for b in game_map[a].values():
                                 already_used.append(b)
+                                
+                        #to ensure player cannot be teleported to the same place by using warps in particular place
+                        
+                        for w in game_map[actual].keys():
+                            if game_map[actual][w][1] in already_used:
+                                already_used.remove(game_map[actual][w][1])
                         
                         if len(already_used) > 1: #there are more locations than only actual
                             chosen = ((0,0), actual)
@@ -88,25 +92,29 @@ def prepare_game_map():
                                 
                             game_map[actual][(x * tile_width,y * tile_height)] = chosen
                         else: #warp to begin of the game
-                            game_map[actual][(x * tile_width ,y * tile_height)] = ((280,120), "Rebels'_HQ.txt",)
-                        
-                        loops.append((actual, (x * tile_width,y * tile_height)))
-    
+                            game_map[actual][(x * tile_width ,y * tile_height)] = ((280,120), "Rebels'_HQ.txt",)    
     
     #connecting one of places to the final location
-    
-    if len(loops) > 0:
-        chosen = random.choice(loops)
-        game_map[chosen[0]][chosen[1]] = ((0,760), "The_Core.txt")
-    else: # I don't have loops
-        # I don't want to connect final location with starting location
-        chosen_place = "Rebels'_HQ.txt"
-        while chosen_place == "Rebels'_HQ.txt":
-            chosen_place = random.choice(list(game_map.keys()))
-        chosen_warp = random.choise(list(game_map[chosen_place].keys()))
-        
-        game_map[chosen_place][chosen_warp] = ((0,760), "The_Core.txt")    
 
+    visited_places = ["Rebels'_HQ.txt"]
+    
+    Q = deque()
+    
+    Q.append("Rebels'_HQ.txt")
+    
+    while len(Q) > 0:
+        act_pos = Q.popleft()
+        for warp in game_map[act_pos].keys():
+            if game_map[act_pos][warp][1] not in visited_places:
+                Q.append(game_map[act_pos][warp][1])
+                visited_places.append(game_map[act_pos][warp][1])
+    
+    chosen_loc = "Rebels'_HQ.txt"
+    while chosen_loc == "Rebels'_HQ.txt":
+        chosen_loc = random.choice(visited_places)
+    
+    game_map[chosen_loc][random.choice(list(game_map[chosen_loc].keys()))] = ((120,720), "The_Core.txt")
+    
 def warp_info(x,y,map_name, img_width, img_height):
     global game_map
     global screen_width, screen_height
@@ -153,13 +161,14 @@ def check_what_under(x, y, map_name, img_width, img_height):
 
             tile_rect = Rect(column * tile_width, row * tile_height, tile_width, tile_height)
             if pygame.Rect.colliderect(object_rect, tile_rect):
-                collision_with += "," + MAP[row][column]              
+                collision_with += "," + MAP[row][column]  
     
     return collision_with
 
 def draw_area(map_name):
     global screen_height, screen_width
-
+    global tile_width, tile_height
+    
     #reading map
     file = open("maps/independent/" + map_name, "r")
     data = file.read()
@@ -184,6 +193,51 @@ def draw_area(map_name):
             if MAP[y][x] == "TBD":
                 continue
             for z in MAP[y][x].split(","):
+                if z == "TBD":
+                    continue
                 tile = pygame.image.load("images/tiles/" + z + ".png")
                 tile = pygame.transform.scale(tile, (tile_width, tile_height))
                 screen.blit(tile,(tile_width * x, tile_height * y ))
+
+    if map_name == "Motorway.txt":
+        draw_cars()
+    
+
+
+def draw_cars():
+    global cars, screen_height, screen_width
+    import random
+    
+    if len(cars) < 5:
+        cars.append([random.choice([410, 414,464]), random.choice([80, 120, 200, 240, 440, 480, 560,600, 800, 840, 920, 960]), 0, random.randint(10, 20)])
+    
+    for car in cars:
+        front = pygame.image.load("images/tiles/" + str(car[0]) + ".png")
+        if car[0] == 410:
+            back = pygame.image.load("images/tiles/383.png")
+        elif car[0] == 414:
+            back = pygame.image.load("images/tiles/387.png")
+        elif car[0] == 464:
+            back = pygame.image.load("images/tiles/437.png")
+        
+        front = pygame.transform.scale(front, (40,40))
+        back = pygame.transform.scale(back, (40,40))
+        
+        screen.blit(front, (car[1], car[2]))
+        screen.blit(back, (car[1], car[2] - 40))
+        
+        car[2] += car[3]
+        
+        if car[2] >= screen_height:
+            cars.remove(car)
+def collision_with_car(player_x, player_y):
+    global cars
+    global player_img_height, player_img_width
+    
+    player_rect = Rect(player_x, player_y, player_img_width, player_img_height)
+    
+    for c in cars:
+        car_rect = Rect(c[1], c[2], 40, 40)
+        if pygame.Rect.colliderect(player_rect, car_rect):
+            return True
+    return False

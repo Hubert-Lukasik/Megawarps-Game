@@ -10,8 +10,10 @@ goes_left = False
 goes_up = False
 goes_down = False
 
-CANNOT_STAND_ON = ["110", "111", "112", "121", "122", "123", "163", "164", "165", "178", "180",  "205", "206", "207" "370", "371", "372"]
-COLLISION_TAKING_LIFE = ["464"]
+CANNOT_STAND_ON = ["E", "36", "37", "43", "44", "76", "84", "110", "111", "112", "121", "122", "123", "135", "144",  "163", "164", "165",
+                   "178", "180", "205", "206", "207", "225", "240", "233", "342", "343", "344", "345", "370", "371", "372", "411", "412"
+                   "441", "442", "465", "466"]
+COLLISION_TAKING_LIFE = ["464","414", "413", "383", "387","427"]
 
 def if_change(event):
     global player_frame,goes_up, goes_left, goes_down, goes_right
@@ -117,6 +119,11 @@ def collision(player_x, player_y, map_name):
     if agents.collision_with_player(player_x, player_y, map_name):
         collisions += ",S"
     
+    if map_name == "Motorway.txt":
+        if game_map.collision_with_car(player_x, player_y):
+            ending.death()
+            return player_x, player_y, map_name, True
+    
     for ID in collisions.split(","):
         if ID in CANNOT_STAND_ON:
             if player_frame[1] == "UP":
@@ -129,15 +136,16 @@ def collision(player_x, player_y, map_name):
                 player_x += 10
         elif ID == "I": #IN warp
             player_x, player_y, map_name = game_map.warp_info(player_x, player_y, map_name, player_img_width, player_img_height)
-        elif ID in COLLISION_TAKING_LIFE:
-            ending.death()
-            return player_x, player_y, map_name, True
         elif ID == "S":
             ending.caught()
             return player_x, player_y, map_name, True
-        elif ID == "E":
+        elif ID == "C":
             ending.good()
             return player_x, player_y, map_name, True
+        elif ID in COLLISION_TAKING_LIFE:
+            ending.death()
+            return player_x, player_y, map_name, True
+     
 
             
             

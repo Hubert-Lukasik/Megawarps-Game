@@ -1,14 +1,25 @@
 from configuration import *
+import time
 
+t1 = time.time()
+t2 = t1 + 55
 def death():
+    global t1,t2
+    
+    if t2 - t1 > 47:
+        pygame.mixer.music.load("music/dark-atmospheric.mp3")
+        pygame.mixer.music.play()
+        t1 = time.time()
+    
     key_pressed = False
     
     while key_pressed == False:
         
         for event in pygame.event.get():
             if event.type == KEYDOWN:
-                key_pressed = True
-                break
+                if event.key == K_SPACE:
+                    key_pressed = True
+                    break
     
         screen.fill((0,0,0)) #black background    
         
@@ -43,21 +54,31 @@ def death():
         text = style.render("THE DEATH END", True, (255,255,255))
         screen.blit(text, (10, 380))
         
-        text = style.render("Press any key to continue..." , True, (255,255,255))
+        text = style.render("Press SPACE to continue..." , True, (255,255,255))
         screen.blit(text, (0, 750))
 
         pygame.display.update()
+        
+        t2 = time.time()
 
 def caught():
+    
+    global t1,t2
+    
+    if t2 - t1 > 44:
+        pygame.mixer.music.load("music/rain-sounds-ambulance-siren-distant.mp3")
+        pygame.mixer.music.play()
+        t1 = time.time()
+    
     key_pressed = False
     
     while key_pressed == False:
         
         for event in pygame.event.get():
             if event.type == KEYDOWN:
-                key_pressed = True
-                break
-    
+                 if event.key == K_SPACE:
+                    key_pressed = True
+                    break
         screen.fill((0,0,0)) #black background    
         
         style = pygame.font.SysFont("Arial", 30)
@@ -79,7 +100,7 @@ def caught():
         text= style.render("Instead his DNA mutated and he became Abomination.", True, (255,255,255))
         screen.blit(text, (10,290))
         
-        text= style.render("But it was not GAFAM's win", True, (255,255,255))
+        text= style.render("But it was not GAFAM's win.", True, (255,255,255))
         screen.blit(text, (10,320))
         
         text = style.render("The Abomination became exemplar for citizens who started street fighting.", True, (255,255,255))
@@ -91,21 +112,32 @@ def caught():
         text = style.render("THE CAUGHT END", True, (255,255,255))
         screen.blit(text, (10, 410))
         
-        text = style.render("Press any key to continue..." , True, (255,255,255))
+        text = style.render("Press SPACE to continue..." , True, (255,255,255))
         screen.blit(text, (0, 750))
 
         pygame.display.update()
+        
+        t2 = time.time()
 
 
 def good():
+    
+    global t1,t2
+    
+    if t2 - t1 > 51:
+        pygame.mixer.music.load("music/positive-happy-background.mp3")
+        pygame.mixer.music.play()
+        t1 = time.time()
+    
     key_pressed = False
     
     while key_pressed == False:
         
         for event in pygame.event.get():
             if event.type == KEYDOWN:
-                key_pressed = True
-                break
+                if event.key == K_SPACE:
+                    key_pressed = True
+                    break
     
         screen.fill((0,0,0)) #black background    
         
@@ -137,7 +169,9 @@ def good():
         text = style.render("THE GOOD END", True, (255,255,255))
         screen.blit(text, (10, 350))
         
-        text = style.render("Press any key to continue..." , True, (255,255,255))
+        text = style.render("Press SPACE to continue..." , True, (255,255,255))
         screen.blit(text, (0, 750))
 
         pygame.display.update()
+        
+        t2 = time.time()

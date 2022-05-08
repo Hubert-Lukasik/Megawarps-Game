@@ -4,6 +4,7 @@ import menu
 import intro
 import game_map
 import agents
+import time
 
 user_chose_new_game = menu.show()
 
@@ -25,7 +26,18 @@ if user_chose_new_game == True:
     
     is_running = True
     
+    t1 = time.time()
+    t2 = t1 + 50
+    
+    
     while is_running:
+        
+        if(t2 - t1) > 46:
+            pygame.mixer.music.load("music/dramatic-action-background.mp3")
+            pygame.mixer.music.play()
+            t1 = time.time()
+            
+        
         #clear screen
         screen.fill((255,255,255))
         
@@ -52,7 +64,11 @@ if user_chose_new_game == True:
         player.status(act_map)
         
         pygame.display.update()
+        
         clock.tick(15)
+        
+        t2 = time.time()
+        previous_map = act_map
     
     
 sys.exit()

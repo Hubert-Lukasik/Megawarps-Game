@@ -1,13 +1,24 @@
 from configuration import *
+import time
+
+t1 = time.time()
+t2 = t1 + 69
 
 def show():
+    global t1,t2
+    
+    if t2 - t1 > 66:
+        pygame.mixer.music.load("music/8bit-background-intro.mp3")
+        pygame.mixer.music.play()
+        
+        t1 = time.time()
     
     key_pressed = False
     
     while key_pressed == False:
         
         for event in pygame.event.get():
-            if event.type == KEYDOWN:
+            if event.type == KEYDOWN and event.key == K_SPACE:
                 key_pressed = True
                 break
     
@@ -75,7 +86,9 @@ def show():
         screen.blit(text, (7, 680))
         
         
-        text = style.render("Press any key to continue..." , True, (255,255,255))
+        text = style.render("Press SPACE to continue..." , True, (255,255,255))
         screen.blit(text, (7, 750))
 
         pygame.display.update()
+        
+        t2 = time.time()
