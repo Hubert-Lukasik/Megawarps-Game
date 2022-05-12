@@ -2,6 +2,7 @@ from configuration import *
 
 game_map = {}
 cars = []
+MAP_TO_DRAW = []
 
 def prepare_game_map():
     import os, random
@@ -165,39 +166,52 @@ def check_what_under(x, y, map_name, img_width, img_height):
     
     return collision_with
 
-def draw_area(map_name):
+def draw_area(map_name, is_new_map):
     global screen_height, screen_width
     global tile_width, tile_height
-    
-    #reading map
-    file = open("maps/independent/" + map_name, "r")
-    data = file.read()
-    data = data.split()
-    file.close()
+    global MAP_TO_DRAW
 
-    MAP = []
-    ind = -1
-    for element in data:
-        if element == "B": #every line begins with B
-            MAP.append([])
-        else:
-            #element -> tile(s) ID
-            MAP[ind].append(element)
+    if is_new_map:
+        MAP = []
+        
+        #reading map
+        file = open("maps/independent/" + map_name, "r")
+        data = file.read()
+        data = data.split()
+        file.close()
+
+        MAP = []
+        ind = -1
+        for element in data:
+            if element == "B": #every line begins with B
+                MAP.append([])
+            else:
+                #element -> tile(s) ID
+                MAP[ind].append(element)
     
-    for y in range(screen_height // tile_height):
-        if y > len(MAP) - 1:
-            break
-        for x in range(screen_width // tile_width):
-            if x > len(MAP[y]) - 1:
+        MAP_TO_DRAW = []
+        
+        for y in range(screen_height // tile_height):
+            if y > len(MAP) - 1:
                 break
-            if MAP[y][x] == "TBD":
-                continue
-            for z in MAP[y][x].split(","):
-                if z == "TBD":
-                    continue
-                tile = pygame.image.load("images/tiles/" + z + ".png")
-                tile = pygame.transform.scale(tile, (tile_width, tile_height))
-                screen.blit(tile,(tile_width * x, tile_height * y ))
+            MAP_TO_DRAW.append([])
+            for x in range(screen_width // tile_width):
+                if x > len(MAP[y]) - 1:
+                    break
+                
+                MAP_TO_DRAW[y].append([])
+                for z in MAP[y][x].split(","):
+                    tile = pygame.image.load("images/tiles/" + z + ".png")
+                    tile = pygame.transform.scale(tile, (tile_width, tile_height))
+                    MAP_TO_DRAW[y][x].append(tile)
+    
+    
+    
+    
+    for y in range(len(MAP_TO_DRAW)):
+        for x in range(len(MAP_TO_DRAW[y])):
+            for z in MAP_TO_DRAW[y][x]:
+                screen.blit(z, (x * tile_width, y * tile_height))
 
     if map_name == "Motorway.txt":
         draw_cars()

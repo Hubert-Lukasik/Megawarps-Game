@@ -23,6 +23,7 @@ if user_chose_new_game == True:
         
         #first map
         act_map = "Rebels'_HQ.txt"
+        prev_map = "R"
         
         
         is_running = True
@@ -58,7 +59,11 @@ if user_chose_new_game == True:
                 is_running = False
                 break
             
-            game_map.draw_area(act_map)
+            if prev_map != act_map:
+                prev_map = act_map
+                game_map.draw_area(act_map, True)
+            else:
+                game_map.draw_area(act_map, False)
             screen.blit(player_img, (player_x,player_y))
             agents.draw(act_map)
             
